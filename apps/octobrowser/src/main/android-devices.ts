@@ -57,6 +57,17 @@ export const ANDROID_DEVICES: readonly AndroidDeviceProfile[] = [
   { id: 'pixel-tablet', brand: 'Google', model: 'Pixel Tablet', baseDevice: 'pixel_tablet', formFactor: 'tablet', width: 1600, height: 2560, density: 320, inches: 10.95, ramMb: 6144, shippedApi: 33, year: 2023, props: { brand: 'google', manufacturer: 'Google', model: 'Pixel Tablet', device: 'tangorpro', product: 'tangorpro' } },
 ] as const;
 
+/** Vendor presets based on an SDK-supported Google base profile. */
+export const ANDROID_VENDOR_DEVICES: readonly AndroidDeviceProfile[] = [
+  { id: 'samsung-galaxy-s23', brand: 'Samsung', model: 'Galaxy S23', baseDevice: 'pixel_7', formFactor: 'phone', width: 1080, height: 2340, density: 420, inches: 6.1, ramMb: 8192, shippedApi: 33, year: 2023, props: { brand: 'samsung', manufacturer: 'Samsung', model: 'SM-S911B', device: 'dm1q', product: 'dm1q' } },
+  { id: 'xiaomi-14', brand: 'Xiaomi', model: 'Xiaomi 14', baseDevice: 'pixel_8', formFactor: 'phone', width: 1200, height: 2670, density: 460, inches: 6.36, ramMb: 8192, shippedApi: 34, year: 2024, props: { brand: 'xiaomi', manufacturer: 'Xiaomi', model: '23127PN0CG', device: 'houji', product: 'houji' } },
+  { id: 'oneplus-12', brand: 'OnePlus', model: 'OnePlus 12', baseDevice: 'pixel_8_pro', formFactor: 'phone', width: 1440, height: 3168, density: 510, inches: 6.82, ramMb: 12288, shippedApi: 34, year: 2024, props: { brand: 'oneplus', manufacturer: 'OnePlus', model: 'CPH2581', device: 'waffle', product: 'waffle' } },
+  { id: 'pixel-10-pro-fold', brand: 'Google', model: 'Pixel 10 Pro Fold', baseDevice: 'pixel_fold', formFactor: 'foldable', width: 2076, height: 2152, density: 420, inches: 8.0, ramMb: 12288, shippedApi: 35, year: 2025, props: { brand: 'google', manufacturer: 'Google', model: 'Pixel 10 Pro Fold', device: 'comet', product: 'comet' } },
+  { id: 'nothing-phone-2', brand: 'Nothing', model: 'Nothing Phone (2)', baseDevice: 'pixel_7', formFactor: 'phone', width: 1080, height: 2412, density: 420, inches: 6.7, ramMb: 8192, shippedApi: 33, year: 2023, props: { brand: 'nothing', manufacturer: 'Nothing', model: 'Nothing Phone (2)', device: 'pong', product: 'pong' } },
+] as const;
+
+export const ANDROID_CATALOG_DEVICES: readonly AndroidDeviceProfile[] = [...ANDROID_DEVICES, ...ANDROID_VENDOR_DEVICES];
+
 export interface AndroidSystemImage {
   id: string;
   label: string;
@@ -193,7 +204,7 @@ export function androidSystemImage(id: string): AndroidSystemImage | undefined {
 }
 
 export function androidDevice(id: string): AndroidDeviceProfile | undefined {
-  return ANDROID_DEVICES.find((item) => item.id === id);
+  return ANDROID_CATALOG_DEVICES.find((item) => item.id === id);
 }
 
 export type AndroidPerformancePreset = 'light' | 'standard' | 'ultra' | 'custom';

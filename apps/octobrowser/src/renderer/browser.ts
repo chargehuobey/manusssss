@@ -490,6 +490,12 @@ function tabElement(tab: TabState, vertical: boolean): HTMLElement {
   if (!tab.pinned) {
     const c = h('button', { class: 'icon-btn tiny close', title: t('ui.closeTab') });
     c.append(icon('close', 12));
+    // The tab itself owns pointerdown for drag/reorder. Without stopping the
+    // close control's pointer sequence here, a click on one close button can
+    // start a tab drag and the final pointerup is interpreted against a
+    // rebuilt strip, making adjacent same-site tabs appear to close too.
+    c.onpointerdown = (e) => { e.stopPropagation(); };
+    c.onpointerup = (e) => { e.stopPropagation(); };
     c.onclick = (e) => { e.stopPropagation(); void api.invoke('ui:tab', tab.id, 'close'); };
     el.append(c);
   }

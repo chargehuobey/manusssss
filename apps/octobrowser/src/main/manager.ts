@@ -55,7 +55,7 @@ import { androidNetworkStatus, clearAndroidProxy, setAllAndroidNetworkOff, setAn
 import type { QuietBootResult } from './android-quiet-boot';
 import { ScreenStream, execAdb, keyArgs, nextRotation, parseRotation, parseScreenAction, pngDimensions, rotationLockArgs, rotationReadArgs, rotationSetArgs, screencapArgs, tapArgs } from './android-screen';
 import { parseSecondaryDisplay } from './android-displays';
-import { importAvdFolder, type CameraSource, androidCameraChoices, androidMediaCheck, repairAndroidMedia, emulatorWebcams, androidCameraChoicesCached, stopAndroidAvd, androidLaunchPrefs, rememberAndroidLaunch, ANDROID_LOCALES, adbPath, androidSerialFor, configureMediaCompanion, applyDeviceIdentity, grantAndroidMediaPermissions, reportAndroidProgress, setAndroidProgressSink, type AndroidProgress, acceptAndroidLicenses, androidPackageInstalled, createAndroidAvdFromSpec, quietBootAndroidAvd, installAndroidPackage, updateAvdSettings, type AvdSettingsInput, androidStudioStatusAsync, ANDROID_DEVICES, ANDROID_SYSTEM_IMAGES, androidDiskInfo, androidSdkCandidates, androidSystemImageInstalled, clearAndroidSdkRoot, installAndroidTools, setAndroidSdkRoot, createAndroidAvd, defaultAvdDirectory, deleteAndroidAvd, ensureMediaCompanionAsync, installAndroidSystemImage, launchAndroidAvd, listAndroidAvds, androidInstallRoot, androidInstallTarget, imageRunsHere, setAndroidInstallRoot, clearAndroidInstallRoot, availableSystemImageIds, androidToolLogPath, mediaCompanionStatusAsync, openAndroidAvdFolder, requestMediaCompanionBroadcast, waitForMediaCompanionCamera, startMediaCompanion, stopMediaCompanion, setMediaPluginEnabled, mediaPluginActive, startWebMediaCompanionAsync, type AndroidAvdCreateInput, type AndroidLaunchInput} from './android-studio';
+ import { importAvdFolder, type CameraSource, androidCameraChoices, androidMediaCheck, repairAndroidMedia, emulatorWebcams, androidCameraChoicesCached, stopAndroidAvd, androidLaunchPrefs, rememberAndroidLaunch, ANDROID_LOCALES, adbPath, androidSerialFor, configureMediaCompanion, applyDeviceIdentity, grantAndroidMediaPermissions, reportAndroidProgress, setAndroidProgressSink, type AndroidProgress, acceptAndroidLicenses, androidPackageInstalled, createAndroidAvdFromSpec, quietBootAndroidAvd, installAndroidPackage, updateAvdSettings, type AvdSettingsInput, androidStudioStatusAsync, ANDROID_CATALOG_DEVICES, ANDROID_SYSTEM_IMAGES, androidDiskInfo, androidSdkCandidates, androidSystemImageInstalled, clearAndroidSdkRoot, installAndroidTools, setAndroidSdkRoot, createAndroidAvd, defaultAvdDirectory, deleteAndroidAvd, ensureMediaCompanionAsync, installAndroidSystemImage, launchAndroidAvd, listAndroidAvds, androidInstallRoot, androidInstallTarget, imageRunsHere, setAndroidInstallRoot, clearAndroidInstallRoot, availableSystemImageIds, androidToolLogPath, mediaCompanionStatusAsync, openAndroidAvdFolder, requestMediaCompanionBroadcast, waitForMediaCompanionCamera, startMediaCompanion, stopMediaCompanion, setMediaPluginEnabled, mediaPluginActive, startWebMediaCompanionAsync, type AndroidAvdCreateInput, type AndroidLaunchInput} from './android-studio';
 import { ANDROID_STORES, androidStore, androidStoreStates, changeAndroidStoreState, installAndroidStores, readMediaFolder, pushMediaToDevice } from './android-stores';
 import { addCustomImage, customCataloguePath, importSystemImageArchive, importSystemImageDirectory, inspectSystemImageDirectory, readCustomCatalogue, removeCustomImage, validCustomPackage } from './android-custom';
 import { installMediaRequirement, vbCableInstalledAsync } from './media-requirements';
@@ -63,6 +63,19 @@ import { execFile } from 'node:child_process';
 import { DOLPHIN_IMPORT_FIELDS, convertDolphinProfile, dolphinProfileSummaries, parseDolphinExport, type DolphinImportOptions } from './dolphin-import';
 
 let importedHandsetsLoaded = false;
+
+const LAUNCHER_CHROME_COLORS: Record<string, { color: string; symbolColor: string }> = {
+  ink: { color: '#111315', symbolColor: '#d8e2ec' }, obsidian: { color: '#090a0d', symbolColor: '#eef1f5' },
+  slate: { color: '#20252b', symbolColor: '#f1f3f5' }, midnight: { color: '#10131d', symbolColor: '#edf1fa' },
+  navy: { color: '#0b1728', symbolColor: '#edf6ff' }, charcoal: { color: '#171717', symbolColor: '#f0f0f0' },
+  amethyst: { color: '#21152f', symbolColor: '#f5ecff' }, purple: { color: '#21152c', symbolColor: '#f6edff' },
+  forest: { color: '#102219', symbolColor: '#eef8ef' }, emerald: { color: '#0c241f', symbolColor: '#eafff7' },
+  olive: { color: '#202314', symbolColor: '#f5f7dc' }, rose: { color: '#2b151d', symbolColor: '#fff0f5' },
+  sunset: { color: '#2c1715', symbolColor: '#fff1e8' }, copper: { color: '#241813', symbolColor: '#fff0df' },
+};
+function launcherChrome(theme: string): { color: string; symbolColor: string } {
+  return LAUNCHER_CHROME_COLORS[theme] ?? LAUNCHER_CHROME_COLORS.ink;
+}
 
 assertSafeWebPreferences({ ...SAFE_WEB_PREFERENCES, webviewTag: false });
 const importedHandsetsDir = () => path.join(os.homedir(), '.octobrowser', 'handsets');
@@ -385,6 +398,7 @@ export class Manager {
       return;
     }
     const distDir = this.ctx.prep.distDir;
+    const chrome = launcherChrome(this.ctx.settings.load().ui.theme);
     this.launcher = new BrowserWindow({
       // A wider, slightly taller base window: the profile table, the proxy
       // table and the side panel all fit without a maximised window.
@@ -393,7 +407,10 @@ export class Manager {
       minWidth: 1040,
       minHeight: 660,
       show: false,
-      backgroundColor: THEME.octobrowser.bg,
+      backgroundColor: chrome.color,
+      titleBarStyle: process.platform === 'win32' ? 'hidden' : 'default',
+      titleBarOverlay: process.platform === 'win32' ? { color: chrome.color, symbolColor: chrome.symbolColor, height: 32 } : false,
+      backgroundMaterial: process.platform === 'win32' ? 'mica' : 'none',
       title: 'Octo.su',
       icon: this.launcherIcon(),
       autoHideMenuBar: true,
@@ -2004,7 +2021,7 @@ export class Manager {
     // Octo services; Android's own SDK tools remain the source of truth.
     handle('mgr:android-status', L, async () => ({
       ...await androidStudioStatusAsync(),
-      devices: ANDROID_DEVICES,
+      devices: ANDROID_CATALOG_DEVICES,
       systems: ANDROID_SYSTEM_IMAGES.map((item) => ({ ...item, installed: androidSystemImageInstalled(item.id), runsHere: imageRunsHere(item.abi) })),
     }));
     handle('mgr:android-list', L, async () => {
@@ -2771,6 +2788,11 @@ export class Manager {
       });
       if (patch.logs) ctx.logger.setMode(updated.logs.mode);
       if (patch.plugins) this.syncMediaPlugins();
+      if (patch.ui && typeof (patch.ui as Record<string, unknown>).theme === 'string' && this.launcher && !this.launcher.isDestroyed()) {
+        const chrome = launcherChrome(updated.ui.theme);
+        this.launcher.setBackgroundColor(chrome.color);
+        if (process.platform === 'win32') this.launcher.setTitleBarOverlay({ color: chrome.color, symbolColor: chrome.symbolColor, height: 32 });
+      }
       // A sidebar preference is entirely local to the launcher. Apart from not
       // broadcasting it to profile windows, do not restart host resolution or
       // background-update scheduling for it. Those process-wide reconfigures

@@ -27,11 +27,10 @@ const NAV: Array<[View, string]> = [
 
 function orderedNav(): Array<[View, string]> {
   const byView = new Map(NAV.map((item) => [item[0], item]));
-  const order = init?.settings.ui.navOrder ?? NAV.map(([view]) => view);
-  const hidden = new Set(init?.settings.ui.navHidden ?? []);
-  return order.flatMap((view) => {
+  const sidebar = init?.settings.ui.sidebar ?? (init?.settings.ui.navOrder ?? NAV.map(([view]) => view)).map((id) => ({ id, visible: !(init?.settings.ui.navHidden ?? []).includes(id) }));
+  return sidebar.flatMap(({ id: view, visible }) => {
     const item = byView.get(view);
-    return item && !hidden.has(view) ? [item] : [];
+    return item && visible ? [item] : [];
   });
 }
 
@@ -238,7 +237,7 @@ function renderRecovery(): void {
   v.className = 'view-recovery';
   const restore = h('button', { class: 'btn primary', text: t('launcher.recovery.restore') });
   restore.onclick = async () => {
-    const settingsAfterRestore = await saveSettings({ ui: { navOrder: NAV.map(([view]) => view), navHidden: [] } });
+    const settingsAfterRestore = await saveSettings({ ui: { sidebar: NAV.map(([id]) => ({ id, visible: true })) } });
     if (settingsAfterRestore) { S.view = 'settings'; render(); }
   };
   const retry = h('button', { class: 'btn', text: t('launcher.recovery.retry') });
@@ -568,9 +567,11 @@ function renderSettings(v: HTMLElement): void {
     h('p', { class: 'hint', text: dolphinOffline ? t('settings.offlineActionBlocked') : t('dolphin.settingsHint') }), dolphinImport));
 
   const themes: Array<[Settings['ui']['theme'], string, string]> = [
-    ['obsidian', 'Obsidian', 'settings.theme.obsidian'], ['midnight', 'Midnight', 'settings.theme.midnight'], ['slate', 'Slate', 'settings.theme.slate'],
-    ['harbor', 'Harbor', 'settings.theme.harbor'], ['silver-fog', 'Silver Fog', 'settings.theme.silverFog'], ['octo-violet', 'Octo Violet', 'settings.theme.octoViolet'],
-    ['porcelain', 'Porcelain', 'settings.theme.porcelain'], ['aurora', 'Aurora', 'settings.theme.aurora'], ['forest-dusk', 'Forest Dusk', 'settings.theme.forestDusk'],
+    ['ink', 'Ink', 'settings.theme.ink'], ['obsidian', 'Obsidian', 'settings.theme.obsidian'], ['slate', 'Slate', 'settings.theme.slate'],
+    ['midnight', 'Midnight', 'settings.theme.midnight'], ['navy', 'Navy', 'settings.theme.navy'], ['charcoal', 'Charcoal', 'settings.theme.charcoal'],
+    ['amethyst', 'Amethyst', 'settings.theme.amethyst'], ['purple', 'Purple', 'settings.theme.purple'], ['forest', 'Forest', 'settings.theme.forest'],
+    ['emerald', 'Emerald', 'settings.theme.emerald'], ['olive', 'Olive', 'settings.theme.olive'], ['rose', 'Rose', 'settings.theme.rose'],
+    ['sunset', 'Sunset', 'settings.theme.sunset'], ['copper', 'Copper', 'settings.theme.copper'],
   ];
   const themeGrid = h('div', { class: 'theme-grid', role: 'radiogroup', 'aria-label': t('settings.theme') });
   const preview = () => h('span', { class: 'theme-swatch', 'aria-hidden': 'true' },
@@ -608,39 +609,37 @@ function renderSettings(v: HTMLElement): void {
   v.append(h('div', { class: 'panel theme-panel' }, h('h2', { text: t('settings.theme') }), h('p', { class: 'hint', text: t('settings.themeHint') }), themeGrid));
 
   const navRows = h('div', { class: 'sidebar-prefs' });
-  const currentOrder = [...s.ui.navOrder];
-  const currentHidden = new Set(s.ui.navHidden);
-  const updateSidebar = async (patch: { navOrder?: View[]; navHidden?: View[] }) => {
+  const currentSidebar = [...(s.ui.sidebar ?? s.ui.navOrder.map((id) => ({ id, visible: !s.ui.navHidden.includes(id) })) )];
+  const updateSidebar = async (sidebar: Array<{ id: View; visible: boolean }>) => {
     captureSidebarMotion();
-    await saveSettings({ ui: patch });
+    await saveSettings({ ui: { sidebar } });
     // Always restore the controls if saving failed. This prevents a partially
     // updated sidebar from ever leaving the launcher visually empty.
     render();
   };
-  for (const view of currentOrder) {
+  for (const entry of currentSidebar) {
+    const view = entry.id;
     const glyph = NAV.find(([id]) => id === view)?.[1] ?? 'info';
-    const index = currentOrder.indexOf(view);
+    const index = currentSidebar.findIndex((item) => item.id === view);
     const up = h('button', { class: 'icon-btn tiny nav-move up', title: t('settings.sidebarUp'), 'aria-label': t('settings.sidebarUp'), disabled: index <= 0 }, icon('back', 14));
-    const down = h('button', { class: 'icon-btn tiny nav-move down', title: t('settings.sidebarDown'), 'aria-label': t('settings.sidebarDown'), disabled: index < 0 || index >= currentOrder.length - 1 }, icon('back', 14));
+    const down = h('button', { class: 'icon-btn tiny nav-move down', title: t('settings.sidebarDown'), 'aria-label': t('settings.sidebarDown'), disabled: index < 0 || index >= currentSidebar.length - 1 }, icon('back', 14));
     up.onclick = () => {
-      const next = [...currentOrder];
+      const next = [...currentSidebar];
       [next[index - 1], next[index]] = [next[index], next[index - 1]];
-      void updateSidebar({ navOrder: next });
+      void updateSidebar(next);
     };
     down.onclick = () => {
-      const next = [...currentOrder];
+      const next = [...currentSidebar];
       [next[index], next[index + 1]] = [next[index + 1], next[index]];
-      void updateSidebar({ navOrder: next });
+      void updateSidebar(next);
     };
-    const visible = toggle(!currentHidden.has(view), `launcher.nav.${view}`, (on) => {
-      const next = new Set(currentHidden);
-      if (on) next.delete(view); else next.add(view);
-      void updateSidebar({ navHidden: [...next] });
+    const visible = toggle(entry.visible, `launcher.nav.${view}`, (on) => {
+      void updateSidebar(currentSidebar.map((item) => item.id === view ? { ...item, visible: on } : item));
     });
     navRows.append(h('div', { class: 'sidebar-pref-row', 'data-nav-view': view }, h('span', { class: 'sidebar-pref-icon' }, icon(glyph, 16)), visible, h('div', { class: 'sidebar-pref-actions' }, up, down)));
   }
   const restoreNav = h('button', { class: 'btn small', text: t('settings.sidebarRestore') });
-  restoreNav.onclick = () => void updateSidebar({ navOrder: NAV.map(([view]) => view), navHidden: [] });
+  restoreNav.onclick = () => void updateSidebar(NAV.map(([id]) => ({ id, visible: true })));
   v.append(h('div', { class: 'panel sidebar-panel' }, h('h2', { text: t('settings.sidebar') }), h('p', { class: 'hint', text: t('settings.sidebarHint') }), navRows, h('div', { class: 'row' }, restoreNav), h('p', { class: 'hint', text: t('settings.sidebarShortcut') })));
   playSidebarMotion('.sidebar-pref-row[data-nav-view]', sidebarRowPositions);
   sidebarRowPositions = null;
@@ -786,7 +785,7 @@ async function boot(): Promise<void> {
     // Sidebar pages can all be hidden deliberately; retain a local escape hatch.
     if ((e.ctrlKey || e.metaKey) && e.key === ',') {
       e.preventDefault();
-      void (async () => { await saveSettings({ ui: { navOrder: NAV.map(([view]) => view), navHidden: [] } }); S.view = 'settings'; render(); })();
+      void (async () => { await saveSettings({ ui: { sidebar: NAV.map(([id]) => ({ id, visible: true })) } }); S.view = 'settings'; render(); })();
       return;
     }
     if (e.key === 'Escape') { closePopup(); if (!$('modal').classList.contains('hidden')) closeModal(); }

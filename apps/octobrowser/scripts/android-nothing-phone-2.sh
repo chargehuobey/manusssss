@@ -11,13 +11,41 @@ ADB="${ADB:-$SDK_ROOT/platform-tools/adb}"
 AVD_DIR="${AVD_DIR:-$HOME/.android/avd/${AVD_NAME}.avd}"
 MODE="${1:-boot}"
 SERIAL_OVERRIDE="${SERIAL_OVERRIDE:-XPTMJBSA5WQ5}"
+TEST_IMEI="${TEST_IMEI:-352080277009953}"
+TEST_MAC="${TEST_MAC:-02:00:00:35:20:80}"
 
 need() { command -v "$1" >/dev/null 2>&1 || { echo "Missing required command: $1" >&2; exit 1; }; }
 need "$EMULATOR"
 need "$ADB"
-[[ -d "$AVD_DIR" ]] || { echo "AVD directory not found: $AVD_DIR" >&2; exit 1; }
+
+create_avd() {
+  local avdmanager="$SDK_ROOT/cmdline-tools/latest/bin/avdmanager"
+  [[ -x "$avdmanager" ]] || avdmanager="$(command -v avdmanager || true)"
+  [[ -n "$avdmanager" ]] || { echo "avdmanager was not found" >&2; exit 1; }
+  printf 'no\n' | "$avdmanager" create avd -n "$AVD_NAME" \
+    -k "system-images;android-35;google_apis;x86_64" -d pixel_7 --force
+  python3 "$(dirname "$0")/repair-avd.py" "$AVD_DIR" --clean-config
+}
+
+apply_test_identity() {
+  [[ "${ALLOW_TEST_IDENTITY:-0}" == "1" ]] || { echo "Set ALLOW_TEST_IDENTITY=1 for the userdebug identity test." >&2; exit 1; }
+  "$ADB" wait-for-device
+  "$ADB" root >/dev/null 2>&1 || true
+  "$ADB" remount >/dev/null 2>&1 || true
+  "$ADB" shell "printf '%s' '$TEST_IMEI' > /data/local/tmp/imei.txt"
+  "$ADB" shell "setprop persist.sys.imei '$TEST_IMEI'"
+  "$ADB" shell "ip link set wlan0 address '$TEST_MAC'" >/dev/null 2>&1 || true
+  echo "Requested test identity values; verify with adb shell getprop and ip link."
+}
+
+if [[ "$MODE" != "create" && "$MODE" != "help" ]]; then
+  [[ -d "$AVD_DIR" ]] || { echo "AVD directory not found: $AVD_DIR (run '$0 create' first)" >&2; exit 1; }
+fi
 
 case "$MODE" in
+  create)
+    create_avd
+    ;;
   clean)
     python3 "$(dirname "$0")/repair-avd.py" "$AVD_DIR" --clean-config
     ;;
@@ -55,11 +83,18 @@ case "$MODE" in
     echo "boot=$("$ADB" shell getprop sys.boot_completed | tr -d '\r')"
     "$ADB" shell dumpsys display | grep -E 'DisplayDeviceInfo|mDisplayId' || true
     ;;
+  identity)
+    apply_test_identity
+    "$ADB" shell getprop ro.product.model
+    "$ADB" shell getprop ro.serialno
+    "$ADB" shell getprop persist.sys.imei
+    "$ADB" shell ip link show wlan0 || true
+    ;;
   repair)
     python3 "$(dirname "$0")/repair-avd.py" "$AVD_DIR"
     ;;
   *)
-    echo "Usage: $0 [clean|boot|quiet|verify|repair]" >&2
+    echo "Usage: $0 [create|clean|boot|quiet|verify|identity|repair]" >&2
     exit 2
     ;;
 esac

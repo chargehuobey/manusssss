@@ -38,7 +38,7 @@ import {
 } from '@octo/core';
 import { REQUIREMENT_FIXES, type RequirementId, unityCaptureRegistered, unityCaptureRegisteredAsync, vbCableInstalled, vbCableInstalledAsync } from './media-requirements';
 
-export { ANDROID_DEVICES, ANDROID_SYSTEM_IMAGES, androidPreset, androidSpaceEstimate } from './android-devices';
+export { ANDROID_DEVICES, ANDROID_CATALOG_DEVICES, ANDROID_SYSTEM_IMAGES, androidPreset, androidSpaceEstimate } from './android-devices';
 export type { AndroidDeviceProfile, AndroidHardwareChoice, AndroidSystemImage, AndroidPerformancePreset, AndroidAbi } from './android-devices';
 
 /**

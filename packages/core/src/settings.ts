@@ -36,11 +36,12 @@ export const SEARCH_ENGINES: Record<SearchEngine, string> = Object.fromEntries(
 ) as Record<SearchEngine, string>;
 export type CloseAction = 'ask' | 'quit' | 'background';
 /** Minimal launcher colour systems. They affect the local manager UI only. */
-export type LauncherTheme = 'obsidian' | 'midnight' | 'slate' | 'harbor' | 'silver-fog' | 'octo-violet' | 'porcelain' | 'aurora' | 'forest-dusk';
-export const LAUNCHER_THEMES: LauncherTheme[] = ['obsidian', 'midnight', 'slate', 'harbor', 'silver-fog', 'octo-violet', 'porcelain', 'aurora', 'forest-dusk'];
+export type LauncherTheme = 'ink' | 'obsidian' | 'slate' | 'midnight' | 'navy' | 'charcoal' | 'amethyst' | 'purple' | 'forest' | 'emerald' | 'olive' | 'rose' | 'sunset' | 'copper';
+export const LAUNCHER_THEMES: LauncherTheme[] = ['ink', 'obsidian', 'slate', 'midnight', 'navy', 'charcoal', 'amethyst', 'purple', 'forest', 'emerald', 'olive', 'rose', 'sunset', 'copper'];
 /** Pages that may appear in the launcher's user-configurable sidebar. */
-export type LauncherNavItem = 'profiles' | 'proxies' | 'virtualbox' | 'trash' | 'security' | 'api' | 'settings' | 'logs' | 'about';
-export const LAUNCHER_NAV_ITEMS: LauncherNavItem[] = ['profiles', 'proxies', 'virtualbox', 'trash', 'security', 'api', 'settings', 'logs', 'about'];
+export type LauncherNavItem = 'profiles' | 'proxies' | 'backup' | 'virtualbox' | 'trash' | 'security' | 'api' | 'settings' | 'logs' | 'about';
+export const LAUNCHER_NAV_ITEMS: LauncherNavItem[] = ['profiles', 'proxies', 'backup', 'virtualbox', 'trash', 'security', 'api', 'settings', 'logs', 'about'];
+export interface LauncherSidebarEntry { id: LauncherNavItem; visible: boolean }
 /** Scope of OctoBrowser's own network activity while no profile page is involved. */
 export type OfflineMode = 'online' | 'practical' | 'strict';
 
@@ -122,9 +123,10 @@ export interface AppSettings {
     openLinksInBackground: boolean;
     /** Soft, quick tab/panel/menu transitions. Can be disabled for zero motion. */
     animations: boolean;
-    /** User-selected sidebar order. Every page remains known even when hidden. */
+    /** Canonical sidebar configuration: one ordered array with visibility per item. */
+    sidebar: LauncherSidebarEntry[];
+    /** Deprecated split representation retained for old API clients and migrated on load. */
     navOrder: LauncherNavItem[];
-    /** Pages intentionally hidden from the sidebar. A keyboard shortcut can restore them. */
     navHidden: LauncherNavItem[];
   };
   tor: {
@@ -156,7 +158,7 @@ export function defaultSettings(): AppSettings {
     security: { autoLockMinutes: 15, secretStore: 'local' },
     logs: { mode: 'standard' },
 
-    ui: { verticalTabs: false, theme: 'obsidian', sleepTabsAfterMin: 30, showStartupSplash: false, showBookmarksBar: false, hideDirectoryPaths: false, virtualBoxMode: false, confirmOnQuit: true, closeAction: 'ask', closeCountdown: true, openLinksInBackground: false, animations: true, navOrder: [...LAUNCHER_NAV_ITEMS], navHidden: [] },
+    ui: { verticalTabs: false, theme: 'ink', sleepTabsAfterMin: 30, showStartupSplash: false, showBookmarksBar: false, hideDirectoryPaths: false, virtualBoxMode: false, confirmOnQuit: true, closeAction: 'ask', closeCountdown: true, openLinksInBackground: false, animations: true, sidebar: LAUNCHER_NAV_ITEMS.map((id) => ({ id, visible: true })), navOrder: [...LAUNCHER_NAV_ITEMS], navHidden: [] },
 
     tor: { torBrowserPath: '' },
     firefox: { firefoxPath: '' },
@@ -239,6 +241,13 @@ export function validateSettings(value: unknown): AppSettings {
     ? value.offlineMode : value.offline === true ? 'practical' : 'online';
   const torPath = safeAbsolutePath(tor.torBrowserPath);
   const firefoxPath = safeAbsolutePath(firefox.firefoxPath);
+  const legacyOrder = launcherNavItems(ui.navOrder, true);
+  const legacyHidden = new Set(launcherNavItems(ui.navHidden, false));
+  const rawSidebar = Array.isArray(ui.sidebar) ? ui.sidebar : legacyOrder.map((id) => ({ id, visible: !legacyHidden.has(id) }));
+  const sidebar = [...new Map(rawSidebar.flatMap((entry) => {
+    if (!isRecord(entry) || typeof entry.id !== 'string' || !LAUNCHER_NAV_ITEMS.includes(entry.id as LauncherNavItem)) return [];
+    return [[entry.id, { id: entry.id as LauncherNavItem, visible: strictBool(entry.visible, true) }] as const];
+  })).values(), ...LAUNCHER_NAV_ITEMS.filter((id) => !rawSidebar.some((entry) => isRecord(entry) && entry.id === id)).map((id) => ({ id, visible: true }))];
   return {
     schema: 1,
     updates: {
@@ -267,7 +276,8 @@ export function validateSettings(value: unknown): AppSettings {
       closeCountdown: strictBool(ui.closeCountdown, d.ui.closeCountdown),
       openLinksInBackground: strictBool(ui.openLinksInBackground, d.ui.openLinksInBackground),
       animations: strictBool(ui.animations, d.ui.animations),
-      navOrder: launcherNavItems(ui.navOrder, true), navHidden: launcherNavItems(ui.navHidden, false),
+      sidebar,
+      navOrder: sidebar.map((entry) => entry.id), navHidden: sidebar.filter((entry) => !entry.visible).map((entry) => entry.id),
     },
     tor: { torBrowserPath: torPath },
     firefox: { firefoxPath },

@@ -98,12 +98,17 @@ describe('settings validation', () => {
     expect(v.ui.openLinksInBackground).toBe(false);
     expect(validateSettings({ schema: 1, ui: { closeAction: 'background' } }).ui.closeAction).toBe('background');
     expect(validateSettings({ schema: 1, ui: { closeCountdown: false } }).ui.closeCountdown).toBe(false);
-    expect(validateSettings({ schema: 1, ui: { theme: 'octo-violet' } }).ui.theme).toBe('octo-violet');
-    expect(validateSettings({ schema: 1, ui: { theme: 'neon' } }).ui.theme).toBe('obsidian');
+    expect(validateSettings({ schema: 1, ui: { theme: 'amethyst' } }).ui.theme).toBe('amethyst');
+    expect(validateSettings({ schema: 1, ui: { theme: 'neon' } }).ui.theme).toBe('ink');
     expect(validateSettings({ schema: 1, logs: { mode: 'off' } }).logs.mode).toBe('off');
     expect(validateSettings({ schema: 1, ui: { navOrder: ['logs', 'profiles', 'logs', 'unknown'], navHidden: ['logs', 'unknown'] } }).ui).toMatchObject({
-      navOrder: ['logs', 'profiles', 'proxies', 'virtualbox', 'trash', 'security', 'api', 'settings', 'about'], navHidden: ['logs'],
+      navOrder: ['logs', 'profiles', 'proxies', 'backup', 'virtualbox', 'trash', 'security', 'api', 'settings', 'about'], navHidden: ['logs'],
     });
+    expect(validateSettings({ schema: 1, ui: { navOrder: ['logs', 'profiles'], navHidden: ['logs'] } }).ui.sidebar).toEqual([
+      { id: 'logs', visible: false }, { id: 'profiles', visible: true }, { id: 'proxies', visible: true }, { id: 'backup', visible: true },
+      { id: 'virtualbox', visible: true }, { id: 'trash', visible: true }, { id: 'security', visible: true }, { id: 'api', visible: true },
+      { id: 'settings', visible: true }, { id: 'about', visible: true },
+    ]);
   });
 
   it('migrates the legacy offline switch and validates offline policies', () => {

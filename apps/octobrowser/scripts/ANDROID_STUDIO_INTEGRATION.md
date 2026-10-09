@@ -5,6 +5,7 @@ Octo.su now includes a test-oriented workflow for the Nothing Phone (2) API 35 A
 ## Clean and repair an AVD
 
 ```bash
+apps/octobrowser/scripts/android-nothing-phone-2.sh create
 apps/octobrowser/scripts/android-nothing-phone-2.sh clean
 apps/octobrowser/scripts/android-nothing-phone-2.sh repair
 ```
@@ -19,7 +20,16 @@ apps/octobrowser/scripts/android-nothing-phone-2.sh verify
 apps/octobrowser/scripts/android-nothing-phone-2.sh quiet
 ```
 
-Identity flags are launch-time test overrides. They are intentionally not written to `config.ini`. IMEI and MAC changes are not automated because they require a userdebug/eng image and can affect device security or app integrity. Use a dedicated test image and follow local law and lab policy.
+Identity flags are launch-time test overrides. They are intentionally not written to `config.ini`. IMEI and MAC changes are available only through an explicit userdebug/eng test-image opt-in because they can affect device security or app integrity. Use a dedicated test image and follow local law and lab policy.
+
+For a dedicated userdebug/eng test image only, the script also exposes an explicit opt-in path:
+
+```bash
+ALLOW_TEST_IDENTITY=1 TEST_IMEI=352080277009953 TEST_MAC=02:00:00:35:20:80 \
+  apps/octobrowser/scripts/android-nothing-phone-2.sh identity
+```
+
+It attempts `adb root`, `adb remount`, the test IMEI property, and the Wi-Fi MAC, then prints the values for verification. Stock Google Play images may reject these operations; that is an emulator image limitation, not a configuration-file failure.
 
 The quiet mode waits for `sys.boot_completed=1`, prints model/serial/display information, and shuts down the emulator through ADB. If the installed emulator does not support `-no-metrics`, remove that one flag or use the app's capability-detected Android launcher.
 
