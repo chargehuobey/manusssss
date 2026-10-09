@@ -44,7 +44,7 @@ body { display: flex; flex-direction: column; overflow: hidden; }
 .window-controls { display: flex; align-items: stretch; height: 100%; flex: none; -webkit-app-region: no-drag; }
 .window-control { width: 42px; height: 100%; padding: 0; border: 0; background: transparent; color: var(--muted); font-size: 17px; line-height: 1; -webkit-app-region: no-drag; }
 .window-control:hover { background: var(--panel2); color: var(--text); }
-.window-control.window-close:hover { background: #b4232d; color: #fff; }
+.window-control.window-close:hover { background: #505050; color: #fff; }
 button { font: inherit; color: inherit; cursor: pointer; }
 button:disabled { cursor: default; }
 input, select, textarea { font: inherit; color: var(--text); background: var(--bg2); border: 1px solid var(--line); border-radius: var(--radius); padding: 9px 12px; min-width: 0; }

@@ -43,7 +43,7 @@ body.vertical #tabstrip #tabs { display: none; }
 .window-controls { display: flex; align-items: stretch; height: 38px; flex: none; -webkit-app-region: no-drag; }
 .window-control { width: 42px; height: 38px; padding: 0; border: 0; background: transparent; color: var(--muted); font-size: 17px; line-height: 1; -webkit-app-region: no-drag; }
 .window-control:hover { background: var(--panel2); color: var(--text); }
-.window-control.window-close:hover { background: #b4232d; color: #fff; }
+.window-control.window-close:hover { background: #505050; color: #fff; }
 /* The tab container uses only the width its tabs need, so the new-tab button
    stays directly beside the final tab. It can still shrink when the strip runs
    out of room, and the drag region consumes all remaining title-bar space. */
