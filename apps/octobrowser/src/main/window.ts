@@ -144,11 +144,11 @@ export class BrowserWindowController {
       minHeight: phone ? 560 : 480,
       show: false,
       backgroundColor: frameColor,
-      // On Windows, use the same integrated title bar as modern desktop browsers:
-      // tabs occupy the top strip and the native window controls stay visible at the right.
+      // The trusted renderer owns the integrated title bar and its controls.
+      // Native overlay buttons would sit over the tab strip and page chrome.
       ...(baseChromeFrame ? {
         titleBarStyle: 'hidden' as const,
-        titleBarOverlay: { color: frameColor, symbolColor: p.theme === 'light' ? '#252525' : '#f0f0f0', height: 38 },
+        titleBarOverlay: false,
       } : {}),
       title: `${p.name} — Octo.su`,
       // Running profile windows use the classic Octo mark with a small profile

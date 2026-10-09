@@ -408,8 +408,10 @@ export class Manager {
       minHeight: 660,
       show: false,
       backgroundColor: chrome.color,
-      titleBarStyle: process.platform === 'win32' ? 'hidden' : 'default',
-      titleBarOverlay: process.platform === 'win32' ? { color: chrome.color, symbolColor: chrome.symbolColor, height: 32 } : false,
+      // The renderer owns the title bar. Native overlay controls would create
+      // a second button set over the app content.
+      titleBarStyle: 'hidden',
+      titleBarOverlay: false,
       backgroundMaterial: process.platform === 'win32' ? 'mica' : 'none',
       title: 'Octo.su',
       icon: this.launcherIcon(),
@@ -2658,6 +2660,15 @@ export class Manager {
     });
     handle('mgr:close-profile', L, (_e, id: string, force?: boolean) => this.stop(String(id), force === true));
     handle('mgr:app-close-choice', L, (_e, choice: 'quit' | 'cancel') => { this.answerLauncherClose(choice === 'quit' ? 'quit' : 'cancel'); return true; });
+    handle('mgr:window-action', L, (e, action: 'minimize' | 'toggle-maximize' | 'toggle-fullscreen' | 'close') => {
+      const win = BrowserWindow.fromWebContents(e.sender);
+      if (!win || win !== this.launcher || win.isDestroyed()) return false;
+      if (action === 'minimize') win.minimize();
+      else if (action === 'toggle-maximize') win.isMaximized() ? win.unmaximize() : win.maximize();
+      else if (action === 'toggle-fullscreen') win.setFullScreen(!win.isFullScreen());
+      else win.close();
+      return { maximized: win.isMaximized(), fullscreen: win.isFullScreen() };
+    });
     handle('mgr:lock-all', L, async () => { await this.lockAll('manual'); return true; });
     handle('mgr:master-password', L, async (_e, action: 'set' | 'remove', current: string, next: string, repeat: string) => {
       const keyring = ctx.keyring;
@@ -2791,7 +2802,7 @@ export class Manager {
       if (patch.ui && typeof (patch.ui as Record<string, unknown>).theme === 'string' && this.launcher && !this.launcher.isDestroyed()) {
         const chrome = launcherChrome(updated.ui.theme);
         this.launcher.setBackgroundColor(chrome.color);
-        if (process.platform === 'win32') this.launcher.setTitleBarOverlay({ color: chrome.color, symbolColor: chrome.symbolColor, height: 32 });
+        // The renderer-owned controls inherit the updated theme tokens.
       }
       // A sidebar preference is entirely local to the launcher. Apart from not
       // broadcasting it to profile windows, do not restart host resolution or

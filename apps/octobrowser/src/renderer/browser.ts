@@ -2779,6 +2779,16 @@ function initEvents(): void {
 
 // ------------------------------------------------------------------ boot
 
+function initWindowControls(): void {
+  const action = (id: string, command: 'minimize' | 'toggle-maximize' | 'toggle-fullscreen') => {
+    $(id).addEventListener('click', () => { void api.invoke('ui:window-action', command); });
+  };
+  action('windowMinimize', 'minimize');
+  action('windowMaximize', 'toggle-maximize');
+  action('windowFullscreen', 'toggle-fullscreen');
+  $('windowClose').addEventListener('click', () => { void api.invoke('ui:close-window'); });
+}
+
 async function boot(): Promise<void> {
   const init = await api.invoke<{ lang: 'en' | 'pl'; dicts: Dicts; version: string; shortcuts: Array<[string, string]>; addons: AddonInfo[]; theme: 'dark' | 'light'; browserShell: ProfileInfo['browserShell']; baseChromeLook: boolean; mobile: boolean }>('ui:init');
   setDicts(init.dicts);
@@ -2787,6 +2797,7 @@ async function boot(): Promise<void> {
   shortcuts = init.shortcuts;
   applyAppearance(init.theme, init.browserShell ?? (init.baseChromeLook ? 'chrome' : 'octo'), init.mobile);
   applyI18n();
+  initWindowControls();
   initToolbar();
   initFind();
   initEvents();

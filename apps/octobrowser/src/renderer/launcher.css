@@ -38,6 +38,13 @@
 ::-webkit-scrollbar-corner { background: transparent; }
 html, body { margin: 0; height: 100%; background: var(--bg); color: var(--text); font: 14px/1.45 var(--font); }
 body { display: flex; flex-direction: column; overflow: hidden; }
+.app-titlebar { flex: none; display: flex; align-items: center; height: 34px; padding-left: 12px; background: var(--bg); border-bottom: 1px solid var(--line); -webkit-app-region: drag; }
+.app-title { flex: none; color: var(--muted); font-size: 12px; font-weight: 650; letter-spacing: .02em; -webkit-app-region: drag; }
+.app-drag { flex: 1; align-self: stretch; min-width: 24px; -webkit-app-region: drag; }
+.window-controls { display: flex; align-items: stretch; height: 100%; flex: none; -webkit-app-region: no-drag; }
+.window-control { width: 42px; height: 100%; padding: 0; border: 0; background: transparent; color: var(--muted); font-size: 17px; line-height: 1; -webkit-app-region: no-drag; }
+.window-control:hover { background: var(--panel2); color: var(--text); }
+.window-control.window-close:hover { background: #b4232d; color: #fff; }
 button { font: inherit; color: inherit; cursor: pointer; }
 button:disabled { cursor: default; }
 input, select, textarea { font: inherit; color: var(--text); background: var(--bg2); border: 1px solid var(--line); border-radius: var(--radius); padding: 9px 12px; min-width: 0; }

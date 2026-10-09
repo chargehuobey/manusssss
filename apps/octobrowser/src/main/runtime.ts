@@ -919,6 +919,13 @@ export class ProfileRuntime {
     // Route the Chrome-style menu's Exit through the same native close path as
     // the title-bar X, so the visible graceful-close confirmation is retained.
     handle('ui:close-window', L, (e) => { this.windowFor(e).close(); return true; });
+    handle('ui:window-action', L, (e, action: 'minimize' | 'toggle-maximize' | 'toggle-fullscreen') => {
+      const controller = this.windowFor(e);
+      if (action === 'minimize') controller.win.minimize();
+      else if (action === 'toggle-maximize') controller.win.isMaximized() ? controller.win.unmaximize() : controller.win.maximize();
+      else controller.win.setFullScreen(!controller.win.isFullScreen());
+      return { maximized: controller.win.isMaximized(), fullscreen: controller.win.isFullScreen() };
+    });
     handle('ui:layout', L, (e, rect: Rect, overlay: boolean) => {
       const r = { x: Math.max(0, Math.round(rect.x)), y: Math.max(0, Math.round(rect.y)), width: Math.max(0, Math.round(rect.width)), height: Math.max(0, Math.round(rect.height)) };
       this.windowFor(e).setLayout(r, !!overlay);

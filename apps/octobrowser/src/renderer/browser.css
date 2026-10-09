@@ -36,10 +36,14 @@ input:focus-visible, button:focus-visible, select:focus-visible { outline: 2px s
 #app { display: flex; flex-direction: column; height: 100%; }
 
 /* ---- tab strip ---- */
-#tabstrip { display: flex; align-items: flex-end; gap: 4px; height: 38px; padding: 0 145px 0 8px; background: var(--bg); border-bottom: 0; -webkit-app-region: drag; }
+#tabstrip { display: flex; align-items: flex-end; gap: 4px; height: 38px; padding: 0 8px; background: var(--bg); border-bottom: 0; -webkit-app-region: drag; }
 body.vertical #tabstrip #tabs { display: none; }
 #tabs { display: flex; gap: 2px; min-width: 0; flex: 0 1 auto; overflow: hidden; -webkit-app-region: no-drag; }
 .drag { flex: 1 0 24px; min-width: 28px; align-self: stretch; }
+.window-controls { display: flex; align-items: stretch; height: 38px; flex: none; -webkit-app-region: no-drag; }
+.window-control { width: 42px; height: 38px; padding: 0; border: 0; background: transparent; color: var(--muted); font-size: 17px; line-height: 1; -webkit-app-region: no-drag; }
+.window-control:hover { background: var(--panel2); color: var(--text); }
+.window-control.window-close:hover { background: #b4232d; color: #fff; }
 /* The tab container uses only the width its tabs need, so the new-tab button
    stays directly beside the final tab. It can still shrink when the strip runs
    out of room, and the drag region consumes all remaining title-bar space. */
@@ -229,8 +233,8 @@ body.tab-dragging, body.tab-dragging .tab { cursor: grabbing; }
 :root[data-browser-shell="firefox"] .tab.active { background: var(--panel); }
 :root[data-browser-shell="firefox"] #toolbar { height: 42px; background: var(--panel); border-top: 0; }
 :root[data-browser-shell="firefox"] #omnibox { border-radius: 7px; background: var(--bg); }
-:root[data-chrome-look="on"] #tabstrip { height: 38px; gap: 0; padding: 0 145px 0 7px; background: var(--bg); border-bottom: 0; }
-/* Windows titleBarOverlay reserves this right edge for minimize/maximize/close. */
+:root[data-chrome-look="on"] #tabstrip { height: 38px; gap: 0; padding: 0 7px; background: var(--bg); border-bottom: 0; }
+/* The renderer-owned controls reserve their own right edge; no native overlay is used. */
 :root[data-chrome-look="on"] .drag { min-width: 28px; }
 :root[data-chrome-look="on"] #tabs { gap: 0; }
 :root[data-chrome-look="on"] .tab { height: 34px; width: 244px; max-width: 244px; flex-basis: 244px; padding: 0 10px; border-radius: 9px 9px 0 0; }

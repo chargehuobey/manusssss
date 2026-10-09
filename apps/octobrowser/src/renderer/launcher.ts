@@ -25,7 +25,15 @@ const NAV: Array<[View, string]> = [
   ['profiles', 'users'], ['proxies', 'proxy'], ['backup', 'box'], ['virtualbox', 'smartphone'], ['trash', 'trash'], ['security', 'shield'], ['api', 'api'], ['settings', 'settings'], ['logs', 'file'], ['about', 'info'],
 ];
 const VALID_VIEWS: View[] = NAV.map(([view]) => view);
-
+function initWindowControls(): void {
+  const action = (id: string, command: 'minimize' | 'toggle-maximize' | 'toggle-fullscreen' | 'close') => {
+    document.getElementById(id)?.addEventListener('click', () => { void api.invoke('mgr:window-action', command); });
+  };
+  action('windowMinimize', 'minimize');
+  action('windowMaximize', 'toggle-maximize');
+  action('windowFullscreen', 'toggle-fullscreen');
+  action('windowClose', 'close');
+}
 function orderedNav(): Array<[View, string]> {
   const byView = new Map(NAV.map((item) => [item[0], item]));
   const fallback = NAV.map(([id]) => ({ id, visible: true }));
@@ -780,6 +788,7 @@ function renderAbout(v: HTMLElement): void {
 
 async function boot(): Promise<void> {
   init = await api.invoke<Init>('mgr:init');
+  initWindowControls();
   S.init = init;
   init.settings.api ??= { enabled: false, port: 35555 };
   applyVirtualBoxMode(!!init.settings.ui.virtualBoxMode);

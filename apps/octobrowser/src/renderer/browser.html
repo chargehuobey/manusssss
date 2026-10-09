@@ -26,8 +26,14 @@
     <header id="tabstrip" role="tablist" aria-label="Tabs">
       <div id="tabs"></div>
       <button id="newTab" class="icon-btn" data-i18n-title="ui.newTab"></button>
-      <div class="drag"></div>
+      <div id="appDrag" class="drag" aria-hidden="true"></div>
       <div id="profileBadge" class="profile-badge" role="button" tabindex="0"></div>
+      <div class="window-controls" role="group" aria-label="Window controls">
+        <button id="windowMinimize" class="window-control" type="button" aria-label="Minimize" title="Minimize">−</button>
+        <button id="windowMaximize" class="window-control" type="button" aria-label="Maximize" title="Maximize">□</button>
+        <button id="windowFullscreen" class="window-control" type="button" aria-label="Fullscreen" title="Fullscreen">⛶</button>
+        <button id="windowClose" class="window-control window-close" type="button" aria-label="Close" title="Close">×</button>
+      </div>
     </header>
     <nav id="toolbar">
       <button id="back" class="icon-btn" data-i18n-title="ctx.back"></button>
