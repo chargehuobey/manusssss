@@ -1450,11 +1450,11 @@ function advanced(b: HTMLElement, d: Draft, draw: () => void, summary: () => voi
   // Local Fingerprint Signals Card
   const computeConfigPreview = () => ({
     seedPreview: fp.seed ? fp.seed.slice(0, 16).toUpperCase() : t('fp.signals.seedNotSet'),
-    canvasMode: `Requested: ${t(`fp.v.${fp.canvas}`)} · runtime not measured`,
-    webglMode: `Requested: ${t(`fp.v.${fp.webgl}`)} · runtime not measured`,
-    audioMode: `Requested: ${t(`fp.v.${fp.audio}`)} · runtime not measured`,
-    clientRectsMode: `Requested: ${t(`fp.v.${fp.clientRects}`)} · runtime not measured`,
-    webgpuPolicy: `Requested: ${fp.webgpu} · runtime not measured`,
+    canvasMode: `Applied on launch: ${t(`fp.v.${fp.canvas}`)}`,
+    webglMode: `Applied on launch: ${t(`fp.v.${fp.webgl}`)}`,
+    audioMode: `Applied on launch: ${t(`fp.v.${fp.audio}`)}`,
+    clientRectsMode: `Applied on launch: ${t(`fp.v.${fp.clientRects}`)}`,
+    webgpuPolicy: `Applied on launch: ${fp.webgpu}`,
     fontMode: t(fp.fonts === 'real' ? 'fp.v.real' : 'fp.v.custom'),
   });
 

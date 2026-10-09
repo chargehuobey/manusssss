@@ -24,11 +24,20 @@ import { openDolphinImportDialog } from './launcher-dolphin';
 const NAV: Array<[View, string]> = [
   ['profiles', 'users'], ['proxies', 'proxy'], ['backup', 'box'], ['virtualbox', 'smartphone'], ['trash', 'trash'], ['security', 'shield'], ['api', 'api'], ['settings', 'settings'], ['logs', 'file'], ['about', 'info'],
 ];
+const VALID_VIEWS: View[] = NAV.map(([view]) => view);
 
 function orderedNav(): Array<[View, string]> {
   const byView = new Map(NAV.map((item) => [item[0], item]));
-  const sidebar = init?.settings.ui.sidebar ?? (init?.settings.ui.navOrder ?? NAV.map(([view]) => view)).map((id) => ({ id, visible: !(init?.settings.ui.navHidden ?? []).includes(id) }));
-  return sidebar.flatMap(({ id: view, visible }) => {
+  const fallback = NAV.map(([id]) => ({ id, visible: true }));
+  const raw = init?.settings.ui.sidebar;
+  const legacy = (init?.settings.ui.navOrder ?? NAV.map(([view]) => view)).map((id) => ({ id, visible: !(init?.settings.ui.navHidden ?? []).includes(id) }));
+  const sidebar = Array.isArray(raw) && raw.length ? raw : (legacy.length ? legacy : fallback);
+  return sidebar.flatMap((entry) => {
+    // Settings may have been written by an older renderer while the launcher
+    // is open. Ignore malformed rows rather than throwing during nav paint.
+    if (!entry || typeof entry !== 'object') return [];
+    const view = (entry as { id?: unknown }).id as View;
+    const visible = (entry as { visible?: unknown }).visible !== false;
     const item = byView.get(view);
     return item && visible ? [item] : [];
   });
@@ -86,7 +95,12 @@ function renderNav(): void {
   clear(nav);
   for (const [v, ic] of orderedNav()) {
     const b = h('button', { class: `rail-item${v === S.view ? ' active' : ''}`, 'data-nav-view': v, title: t(`launcher.nav.${v}`), 'aria-label': t(`launcher.nav.${v}`), 'aria-current': v === S.view ? 'page' : undefined }, icon(ic, 21), h('span', { class: 'rail-lbl', text: t(`launcher.nav.${v}`) }));
-    b.onclick = () => { S.view = v; render(); };
+    b.onclick = () => {
+      S.view = v;
+      lastView = v;
+      try { sessionStorage.setItem('octo.launcher.view', v); } catch { /* unavailable in hardened webviews */ }
+      render();
+    };
     nav.append(b);
   }
   playSidebarMotion('#nav .rail-item[data-nav-view]', railItemPositions);
@@ -150,8 +164,12 @@ function render(): void {
     // Manager push messages can arrive while a profile is starting. Never let
     // a malformed persisted view or a transient async update clear the whole
     // launcher: normalize to the last usable category before painting.
-    const validViews: View[] = ['profiles', 'proxies', 'backup', 'virtualbox', 'trash', 'security', 'api', 'settings', 'logs', 'about'];
-    if (!validViews.includes(S.view)) S.view = validViews.includes(lastView as View) ? lastView as View : 'profiles';
+    if (!VALID_VIEWS.includes(S.view)) {
+      let remembered = '';
+      try { remembered = sessionStorage.getItem('octo.launcher.view') ?? ''; } catch { /* ignore */ }
+      S.view = VALID_VIEWS.includes(remembered as View) ? remembered as View
+        : VALID_VIEWS.includes(lastView as View) ? lastView as View : 'profiles';
+    }
     renderPage();
   } catch (error) {
     // A settings write or a damaged local preference must never strand the
@@ -611,8 +629,16 @@ function renderSettings(v: HTMLElement): void {
   const navRows = h('div', { class: 'sidebar-prefs' });
   const currentSidebar = [...(s.ui.sidebar ?? s.ui.navOrder.map((id) => ({ id, visible: !s.ui.navHidden.includes(id) })) )];
   const updateSidebar = async (sidebar: Array<{ id: View; visible: boolean }>) => {
+    const preservedView = S.view;
     captureSidebarMotion();
     await saveSettings({ ui: { sidebar } });
+    // A sidebar preference is not a navigation action. Keep the page the user
+    // was editing (including Settings) instead of falling back to Profiles
+    // after the manager sends the updated settings snapshot.
+    if (VALID_VIEWS.includes(preservedView)) {
+      S.view = preservedView;
+      try { sessionStorage.setItem('octo.launcher.view', preservedView); } catch { /* ignore */ }
+    }
     // Always restore the controls if saving failed. This prevents a partially
     // updated sidebar from ever leaving the launcher visually empty.
     render();
@@ -769,6 +795,12 @@ async function boot(): Promise<void> {
   S.proxies = (await api.invoke<SavedProxy[]>('mgr:proxies').catch(() => [])) ?? [];
   const q = new URLSearchParams(location.search).get('tab');
   if (q && NAV.some(([x]) => x === q)) S.view = q as View;
+  else {
+    try {
+      const remembered = sessionStorage.getItem('octo.launcher.view');
+      if (remembered && NAV.some(([x]) => x === remembered)) S.view = remembered as View;
+    } catch { /* ignore unavailable session storage */ }
+  }
   // Re-render lists only when no text field has focus, so typing is never interrupted.
   const soft = () => {
     const a = document.activeElement;
@@ -779,7 +811,13 @@ async function boot(): Promise<void> {
   api.on<SavedProxy[]>('mgr:proxies', (list) => { S.proxies = list; soft(); });
   api.on<UpdateStatus>('mgr:update-status', (u) => { init.update = u; renderNav(); });
   api.on<{ key: string; params?: Record<string, string | number>; kind?: 'ok' | 'err' | 'info' }>('mgr:toast', (m) => toast(t(m.key, m.params), m.kind));
-  api.on<string>('mgr:show-tab', (tab) => { if (NAV.some(([x]) => x === tab)) { S.view = tab as View; render(); } });
+  api.on<string>('mgr:show-tab', (tab) => {
+    if (NAV.some(([x]) => x === tab)) {
+      S.view = tab as View;
+      try { sessionStorage.setItem('octo.launcher.view', S.view); } catch { /* ignore */ }
+      render();
+    }
+  });
   api.on('mgr:app-close-request', () => showCloseAppDialog());
   document.addEventListener('keydown', (e) => {
     // Sidebar pages can all be hidden deliberately; retain a local escape hatch.
