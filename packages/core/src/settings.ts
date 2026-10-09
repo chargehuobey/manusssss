@@ -36,8 +36,8 @@ export const SEARCH_ENGINES: Record<SearchEngine, string> = Object.fromEntries(
 ) as Record<SearchEngine, string>;
 export type CloseAction = 'ask' | 'quit' | 'background';
 /** Minimal launcher colour systems. They affect the local manager UI only. */
-export type LauncherTheme = 'ink' | 'obsidian' | 'slate' | 'midnight' | 'navy' | 'charcoal' | 'amethyst' | 'purple' | 'forest' | 'emerald' | 'olive' | 'rose' | 'sunset' | 'copper';
-export const LAUNCHER_THEMES: LauncherTheme[] = ['ink', 'obsidian', 'slate', 'midnight', 'navy', 'charcoal', 'amethyst', 'purple', 'forest', 'emerald', 'olive', 'rose', 'sunset', 'copper'];
+export type LauncherTheme = 'ink' | 'obsidian' | 'slate' | 'midnight' | 'navy' | 'charcoal' | 'amethyst' | 'purple' | 'forest' | 'emerald' | 'olive' | 'rose' | 'sunset' | 'copper' | 'frutigerAero';
+export const LAUNCHER_THEMES: LauncherTheme[] = ['ink', 'obsidian', 'slate', 'midnight', 'navy', 'charcoal', 'amethyst', 'purple', 'forest', 'emerald', 'olive', 'rose', 'sunset', 'copper', 'frutigerAero'];
 /** Pages that may appear in the launcher's user-configurable sidebar. */
 export type LauncherNavItem = 'profiles' | 'proxies' | 'backup' | 'virtualbox' | 'trash' | 'security' | 'api' | 'settings' | 'logs' | 'about';
 export const LAUNCHER_NAV_ITEMS: LauncherNavItem[] = ['profiles', 'proxies', 'backup', 'virtualbox', 'trash', 'security', 'api', 'settings', 'logs', 'about'];

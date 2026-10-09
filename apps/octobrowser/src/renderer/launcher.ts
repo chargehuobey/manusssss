@@ -598,6 +598,7 @@ function renderSettings(v: HTMLElement): void {
     ['amethyst', 'Amethyst', 'settings.theme.amethyst'], ['purple', 'Purple', 'settings.theme.purple'], ['forest', 'Forest', 'settings.theme.forest'],
     ['emerald', 'Emerald', 'settings.theme.emerald'], ['olive', 'Olive', 'settings.theme.olive'], ['rose', 'Rose', 'settings.theme.rose'],
     ['sunset', 'Sunset', 'settings.theme.sunset'], ['copper', 'Copper', 'settings.theme.copper'],
+    ['frutigerAero', 'Frutiger Aero', 'settings.theme.frutigerAero'],
   ];
   const themeGrid = h('div', { class: 'theme-grid', role: 'radiogroup', 'aria-label': t('settings.theme') });
   const preview = () => h('span', { class: 'theme-swatch', 'aria-hidden': 'true' },
