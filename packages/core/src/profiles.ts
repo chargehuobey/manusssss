@@ -257,6 +257,8 @@ export interface ProfilesDoc {
   passwordDefaultsVersion?: number;
   /** One-time migration marker for classic website media permission prompts. */
   mediaPermissionDefaultsVersion?: number;
+  /** One-time migration marker for the legacy profile security baseline. */
+  securityDefaultsVersion?: number;
 }
 
 const COLORS: Record<ProfileKind, string> = {
@@ -499,6 +501,7 @@ function validateDoc(value: unknown): ProfilesDoc {
     lastUsedId: typeof v.lastUsedId === 'string' ? v.lastUsedId : undefined,
     passwordDefaultsVersion: Number.isInteger(v.passwordDefaultsVersion) ? Number(v.passwordDefaultsVersion) : 0,
     mediaPermissionDefaultsVersion: Number.isInteger(v.mediaPermissionDefaultsVersion) ? Number(v.mediaPermissionDefaultsVersion) : 0,
+    securityDefaultsVersion: Number.isInteger(v.securityDefaultsVersion) ? Number(v.securityDefaultsVersion) : 0,
   };
 }
 
@@ -526,7 +529,7 @@ export class ProfileManager {
   ) {
     this.store = new VersionedStore<ProfilesDoc>(path.join(layout.config, 'profiles.json'), {
       backupDir: path.join(layout.backups, 'config'),
-      defaults: () => ({ schema: 1, profiles: [], passwordDefaultsVersion: 1, mediaPermissionDefaultsVersion: 1 }),
+      defaults: () => ({ schema: 1, profiles: [], passwordDefaultsVersion: 1, mediaPermissionDefaultsVersion: 1, securityDefaultsVersion: 1 }),
       validate: validateDoc,
       maxBackups: 30,
     });
@@ -555,6 +558,27 @@ export class ProfileManager {
         current.mediaPermissionDefaultsVersion = 1;
       });
     }
+    // Profiles created before the security baseline existed may have been
+    // permissive by default. Upgrade only privacy-sensitive profile classes
+    // and proxy transport; regular profiles keep their chosen level.
+    if ((doc.securityDefaultsVersion ?? 0) < 1) {
+      this.store.update((current) => {
+        for (const profile of current.profiles) {
+          if (profile.network.mode === 'proxy') profile.network.lockdown = true;
+          if (profile.kind === 'private' || profile.kind === 'temporary') {
+            profile.protection = { level: 'strict', overrides: { clearOnExit: true, blockThirdPartyCookies: true, stripTrackingParams: true } };
+            profile.deleteOnClose = true;
+            profile.keepHistory = false;
+            profile.restoreSession = false;
+            profile.sandbox.clipboard = 'write-only';
+            profile.sandbox.externalDevices = false;
+            profile.sandbox.shareDownloads = false;
+          }
+          if (profile.kind === 'tor') profile.protection = { level: 'tor' };
+        }
+        current.securityDefaultsVersion = 1;
+      });
+    }
   }
 
   /** Create the default profile set on first run (Personal, Work, Private, Testing, Temporary, Tor). */
@@ -562,7 +586,7 @@ export class ProfileManager {
     const doc = this.store.load();
     if (doc.profiles.length > 0) return;
     const profiles = kinds.map((k) => defaultProfile(k, names[k]));
-    this.store.save({ schema: 1, profiles, lastUsedId: profiles[0].id, passwordDefaultsVersion: 1, mediaPermissionDefaultsVersion: 1 });
+    this.store.save({ schema: 1, profiles, lastUsedId: profiles[0].id, passwordDefaultsVersion: 1, mediaPermissionDefaultsVersion: 1, securityDefaultsVersion: 1 });
     for (const p of profiles) this.ensureDirs(p.id);
   }
 

@@ -112,6 +112,32 @@ describe('ProfileManager', () => {
     expect(reopened.get(personal.id).sandbox.microphone).toBe(false);
   });
 
+  it('upgrades legacy profile security once and preserves later user changes', () => {
+    const layout = new DataLayout(path.join(tmpDir(), 'OctoBrowser'));
+    layout.ensure();
+    const initial = new ProfileManager(layout, undefined, FAST_KDF);
+    const legacyProxy = defaultProfile('custom', 'Legacy proxy');
+    legacyProxy.network = { mode: 'proxy', proxyRules: 'socks5://127.0.0.1:1080', lockdown: false };
+    const legacyPrivate = defaultProfile('private', 'Legacy private');
+    legacyPrivate.protection = { level: 'normal' };
+    legacyPrivate.deleteOnClose = false;
+    legacyPrivate.keepHistory = true;
+    legacyPrivate.restoreSession = true;
+    initial.store.save({ schema: 1, profiles: [legacyProxy, legacyPrivate], passwordDefaultsVersion: 1, mediaPermissionDefaultsVersion: 1, securityDefaultsVersion: 0 });
+
+    const migrated = new ProfileManager(layout, undefined, FAST_KDF);
+    expect(migrated.get(legacyProxy.id).network.lockdown).toBe(true);
+    expect(migrated.get(legacyPrivate.id).protection.level).toBe('strict');
+    expect(migrated.get(legacyPrivate.id).deleteOnClose).toBe(true);
+    expect(migrated.get(legacyPrivate.id).keepHistory).toBe(false);
+    expect(migrated.get(legacyPrivate.id).restoreSession).toBe(false);
+    expect(migrated.store.load().securityDefaultsVersion).toBe(1);
+
+    migrated.update(legacyProxy.id, { network: { ...migrated.get(legacyProxy.id).network, lockdown: false } });
+    const reopened = new ProfileManager(layout, undefined, FAST_KDF);
+    expect(reopened.get(legacyProxy.id).network.lockdown).toBe(false);
+  });
+
   it('migrates saved capture selections into enabled device classes', () => {
     const migrated = sanitizeProfile({
       id: 'p-abcdef123496', kind: 'custom', name: 'Camera profile',
