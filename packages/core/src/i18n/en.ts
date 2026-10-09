@@ -946,6 +946,7 @@ export const en: Record<string, string> = {
   'settings.theme.forestDusk': 'Custom muted green',
   'settings.theme.warRoom': 'Non-graphic tactical dark mode',
   'settings.theme.frutigerAero': 'Sky-blue glass and fresh green',
+  'settings.theme.liquidGlass': 'Translucent layers, blur, and soft specular depth',
   'settings.sidebar': 'Sidebar navigation',
   'settings.sidebarHint': 'Show or hide any page in the side rail, then use the arrows to choose its order.',
   'settings.sidebarUp': 'Move up',

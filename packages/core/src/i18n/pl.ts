@@ -945,6 +945,7 @@ export const pl: Record<string, string> = {
   'settings.theme.forestDusk': 'Autorska stonowana zieleń',
   'settings.theme.warRoom': 'Niegraficzny tryb taktyczny',
   'settings.theme.frutigerAero': 'Błękitne szkło i świeża zieleń',
+  'settings.theme.liquidGlass': 'Przezroczyste warstwy, rozmycie i miękka głębia światła',
   'settings.sidebar': 'Nawigacja paska bocznego',
   'settings.sidebarHint': 'Pokaż lub ukryj dowolną stronę na bocznym pasku, a następnie strzałkami ustaw jej kolejność.',
   'settings.sidebarUp': 'Przenieś wyżej',
