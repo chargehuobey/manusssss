@@ -32,6 +32,10 @@
 :root[data-app-theme="copper"] { --bg:#241813; --bg2:#35221a; --panel:#442b20; --panel2:#55372a; --panel3:#55372a; --line:#76503a; --line2:#d99a68; --text:#fff0df; --muted:#d3b49b; --dim:#a27c60; --accent:#d99a68; --accent-h:#f4c59a; --accent-bg:#60402e; }
 :root[data-app-theme="frutigerAero"] { --bg:#b9e8f6; --bg2:#dff7fb; --panel:#f4ffff; --panel2:#c8eef0; --panel3:#a9dfe5; --line:#73bdc7; --line2:#2e8f9a; --text:#16495a; --muted:#397182; --dim:#5e8d98; --accent:#1b9b67; --accent-h:#0d774b; --accent-bg:#c6f0d9; color-scheme: light; }
 :root[data-app-theme="liquidGlass"] { --bg:#d7e5f0; --bg2:rgba(239,247,253,.58); --panel:rgba(255,255,255,.48); --panel2:rgba(255,255,255,.62); --panel3:rgba(214,231,244,.52); --line:rgba(255,255,255,.72); --line2:#789bb7; --text:#233c52; --muted:#557189; --dim:#7891a5; --accent:#4b83b2; --accent-h:#2e618d; --accent-bg:rgba(112,174,216,.24); color-scheme: light; }
+:root[data-app-theme="halloweenDay"] { --bg:#fff1ad; --bg2:#ffe28a; --panel:#fff8d8; --panel2:#ffd36b; --panel3:#ffc04f; --line:#d98a22; --line2:#a94f18; --text:#3a1d16; --muted:#74402b; --dim:#9c623b; --accent:#bd4a22; --accent-h:#8e2e18; --accent-bg:#ffdca0; color-scheme: light; }
+:root[data-app-theme="halloweenNight"] { --bg:#151226; --bg2:#211b3d; --panel:#2d2450; --panel2:#3c2e62; --panel3:#3c2e62; --line:#66528b; --line2:#f0bb62; --text:#fff2c9; --muted:#d6c2e7; --dim:#a98fc4; --accent:#f0bb62; --accent-h:#ffd987; --accent-bg:#4b365e; }
+:root[data-app-theme="kush"] { --bg:#13241b; --bg2:#1b3425; --panel:#254a31; --panel2:#315e3e; --panel3:#315e3e; --line:#4f8756; --line2:#b9db72; --text:#eff8d6; --muted:#c2d6a4; --dim:#8eae7a; --accent:#b9db72; --accent-h:#d8f29a; --accent-bg:#376342; }
+:root[data-app-theme="tactical"] { --bg:#202522; --bg2:#292f2b; --panel:#343b36; --panel2:#414a42; --panel3:#414a42; --line:#626d62; --line2:#c1cbbd; --text:#edf2e9; --muted:#bec9bd; --dim:#8d9b8e; --accent:#c1cbbd; --accent-h:#edf4e8; --accent-bg:#4b574c; }
 * { box-sizing: border-box; }
 * { scrollbar-width: thin; scrollbar-color: var(--line2) transparent; }
 ::-webkit-scrollbar { width: 10px; height: 10px; }
@@ -386,6 +390,10 @@ button.tg:hover { border-color: var(--accent); }
 .theme-copper { --preview-bg:#241813; --preview-top:#35221a; --preview-side:#442b20; --preview-panel:#55372a; --preview-line:#76503a; --preview-muted:#d3b49b; --preview-accent:#d99a68; }
 .theme-frutigerAero { --preview-bg:#b9e8f6; --preview-top:#dff7fb; --preview-side:#a9dfe5; --preview-panel:#f4ffff; --preview-line:#73bdc7; --preview-muted:#397182; --preview-accent:#1b9b67; }
 .theme-liquidGlass { --preview-bg:#d7e5f0; --preview-top:rgba(255,255,255,.72); --preview-side:rgba(255,255,255,.42); --preview-panel:rgba(255,255,255,.66); --preview-line:#a9c2d6; --preview-muted:#557189; --preview-accent:#4b83b2; }
+.theme-halloweenDay { --preview-bg:#fff1ad; --preview-top:#ffe28a; --preview-side:#ffd36b; --preview-panel:#fff8d8; --preview-line:#d98a22; --preview-muted:#74402b; --preview-accent:#bd4a22; }
+.theme-halloweenNight { --preview-bg:#151226; --preview-top:#211b3d; --preview-side:#2d2450; --preview-panel:#3c2e62; --preview-line:#66528b; --preview-muted:#d6c2e7; --preview-accent:#f0bb62; }
+.theme-kush { --preview-bg:#13241b; --preview-top:#1b3425; --preview-side:#254a31; --preview-panel:#315e3e; --preview-line:#4f8756; --preview-muted:#c2d6a4; --preview-accent:#b9db72; }
+.theme-tactical { --preview-bg:#202522; --preview-top:#292f2b; --preview-side:#343b36; --preview-panel:#414a42; --preview-line:#626d62; --preview-muted:#bec9bd; --preview-accent:#c1cbbd; }
 .theme-check { display: none; }
 .theme-card.on .theme-check { position: absolute; top: -9px; left: -9px; display: grid; place-items: center; width: 23px; height: 23px; border-radius: 50%; background: var(--accent); color: #1b1b20; box-shadow: 0 0 0 2px var(--panel); }
 .theme-swatch { display:block; height:74px; border:1px solid #ffffff24; border-radius:7px; overflow:hidden; background:var(--preview-bg); box-shadow:inset 0 0 0 1px #0003; }
@@ -399,6 +407,16 @@ button.tg:hover { border-color: var(--accent); }
 .theme-preview-page i.wide { grid-column:1 / -1; height:7px; background:var(--preview-accent); opacity:.8; }
 .theme-preview-page i.short { height:8px; }
 .theme-card b { font-size:14px; line-height:1.15; }.theme-card > span:last-child { font-size:12px; color:var(--muted); }
+.fun-themes-panel { border: 1px solid var(--line); border-radius: 9px; padding: 10px 12px 12px; background: var(--bg2); }
+.fun-themes-panel summary { cursor: pointer; color: var(--accent-h); font-weight: 700; user-select: none; }
+.fun-themes-panel summary::marker { color: var(--accent); }
+.fun-themes-panel > .hint { margin: 9px 0 12px; }
+.fun-theme-grid { margin-top: 10px; }
+.theme-halloweenDay::before, .theme-halloweenNight::before, .theme-kush::before { position: absolute; z-index: 2; top: 7px; right: 9px; font-size: 19px; line-height: 1; pointer-events: none; filter: drop-shadow(0 1px 1px #0004); }
+.theme-halloweenDay::after, .theme-halloweenNight::after { position: absolute; z-index: 2; bottom: 9px; right: 12px; font-size: 16px; line-height: 1; pointer-events: none; }
+.theme-halloweenDay::before { content: '🕸'; }.theme-halloweenDay::after { content: '🕷'; }
+.theme-halloweenNight::before { content: '🕸'; }.theme-halloweenNight::after { content: '🕷'; }
+.theme-kush::before { content: '☘'; color: #d8f29a; }
 :root[data-app-theme="liquidGlass"] body { background: radial-gradient(circle at 14% 8%, rgba(255,255,255,.9), transparent 32%), radial-gradient(circle at 88% 18%, rgba(124,190,232,.42), transparent 30%), linear-gradient(135deg, #d7e5f0, #b9d3e7 52%, #e7f3fa); }
 :root[data-app-theme="liquidGlass"] #appTitlebar,
 :root[data-app-theme="liquidGlass"] #rail,

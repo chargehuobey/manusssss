@@ -73,6 +73,8 @@ const LAUNCHER_CHROME_COLORS: Record<string, { color: string; symbolColor: strin
   olive: { color: '#202314', symbolColor: '#f5f7dc' }, rose: { color: '#2b151d', symbolColor: '#fff0f5' },
   sunset: { color: '#2c1715', symbolColor: '#fff1e8' }, copper: { color: '#241813', symbolColor: '#fff0df' },
   frutigerAero: { color: '#b9e8f6', symbolColor: '#16495a' }, liquidGlass: { color: '#d9e8f4', symbolColor: '#25445c' },
+  halloweenDay: { color: '#f4b942', symbolColor: '#2a1720' }, halloweenNight: { color: '#17152d', symbolColor: '#f2d37d' },
+  kush: { color: '#173d2d', symbolColor: '#d9f3a5' }, tactical: { color: '#202522', symbolColor: '#d7ddd2' },
 };
 function launcherChrome(theme: string): { color: string; symbolColor: string } {
   return LAUNCHER_CHROME_COLORS[theme] ?? LAUNCHER_CHROME_COLORS.ink;

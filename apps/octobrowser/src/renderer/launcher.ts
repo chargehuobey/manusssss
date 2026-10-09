@@ -600,14 +600,21 @@ function renderSettings(v: HTMLElement): void {
     ['sunset', 'Sunset', 'settings.theme.sunset'], ['copper', 'Copper', 'settings.theme.copper'],
     ['frutigerAero', 'Frutiger Aero', 'settings.theme.frutigerAero'], ['liquidGlass', 'Liquid Glass', 'settings.theme.liquidGlass'],
   ];
+  const funThemes: Array<[Settings['ui']['theme'], string, string]> = [
+    ['halloweenDay', 'Halloween Day', 'settings.theme.halloweenDay'],
+    ['halloweenNight', 'Halloween Night', 'settings.theme.halloweenNight'],
+    ['kush', 'Kush Garden', 'settings.theme.kush'],
+    ['tactical', 'Field Console', 'settings.theme.tactical'],
+  ];
   const themeGrid = h('div', { class: 'theme-grid', role: 'radiogroup', 'aria-label': t('settings.theme') });
+  const funGrid = h('div', { class: 'theme-grid fun-theme-grid', role: 'radiogroup', 'aria-label': t('settings.funThemes') });
   const preview = () => h('span', { class: 'theme-swatch', 'aria-hidden': 'true' },
     h('span', { class: 'theme-preview-bar' }, h('i'), h('i'), h('i')),
     h('span', { class: 'theme-preview-body' },
       h('span', { class: 'theme-preview-rail' }, h('i'), h('i'), h('i'), h('i')),
       h('span', { class: 'theme-preview-page' }, h('i', { class: 'wide' }), h('i'), h('i'), h('i', { class: 'short' }))));
   const markTheme = (active: Settings['ui']['theme']) => {
-    for (const item of themeGrid.querySelectorAll<HTMLElement>('.theme-card')) {
+    for (const item of v.querySelectorAll<HTMLElement>('.theme-card')) {
       const selected = item.dataset.theme === active;
       item.classList.toggle('on', selected);
       item.setAttribute('aria-checked', String(selected));
@@ -615,10 +622,11 @@ function renderSettings(v: HTMLElement): void {
       if (check) check.replaceChildren(...(selected ? [icon('check', 14)] : []));
     }
   };
-  for (const [id, name, desc] of themes) {
-    const selected = s.ui.theme === id;
-    const card = h('button', { type: 'button', class: `theme-card theme-${id}${selected ? ' on' : ''}`, 'data-theme': id, role: 'radio', 'aria-checked': String(selected) },
-      h('span', { class: 'theme-check' }, selected ? icon('check', 14) : null), preview(), h('b', { text: name }), h('span', { text: t(desc) }));
+  const addThemeCards = (grid: HTMLElement, choices: Array<[Settings['ui']['theme'], string, string]>) => {
+    for (const [id, name, desc] of choices) {
+      const selected = s.ui.theme === id;
+      const card = h('button', { type: 'button', class: `theme-card theme-${id}${selected ? ' on' : ''}`, 'data-theme': id, role: 'radio', 'aria-checked': String(selected) },
+        h('span', { class: 'theme-check' }, selected ? icon('check', 14) : null), preview(), h('b', { text: name }), h('span', { text: t(desc) }));
     card.onclick = async () => {
       if (init.settings.ui.theme === id) return;
       const previous = init.settings.ui.theme;
@@ -631,9 +639,15 @@ function renderSettings(v: HTMLElement): void {
       if (!saved) { applyLauncherTheme(previous); markTheme(previous); }
       window.setTimeout(() => document.documentElement.classList.remove('theme-changing'), 260);
     };
-    themeGrid.append(card);
-  }
-  v.append(h('div', { class: 'panel theme-panel' }, h('h2', { text: t('settings.theme') }), h('p', { class: 'hint', text: t('settings.themeHint') }), themeGrid));
+      grid.append(card);
+    }
+  };
+  addThemeCards(themeGrid, themes);
+  addThemeCards(funGrid, funThemes);
+  const funPanel = h('details', { class: 'fun-themes-panel' }) as HTMLDetailsElement;
+  funPanel.open = funThemes.some(([id]) => s.ui.theme === id);
+  funPanel.append(h('summary', { text: t('settings.funThemes') }), h('p', { class: 'hint', text: t('settings.funThemesHint') }), funGrid);
+  v.append(h('div', { class: 'panel theme-panel' }, h('h2', { text: t('settings.theme') }), h('p', { class: 'hint', text: t('settings.themeHint') }), themeGrid, funPanel));
 
   const navRows = h('div', { class: 'sidebar-prefs' });
   const currentSidebar = [...(s.ui.sidebar ?? s.ui.navOrder.map((id) => ({ id, visible: !s.ui.navHidden.includes(id) })) )];
